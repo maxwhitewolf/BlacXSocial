@@ -1,0 +1,309 @@
+Thought for 29s
+
+Awesome—let’s blueprint BlanX (MERN, REST) end-to-end, then I’ll give you a single copy-paste AI build prompt you can drop into Cursor/Replit/Copilot to scaffold the whole thing.
+
+BlanX (MERN) — crisp system overview
+Core features (MVP → v1)
+
+Auth: email/username login, JWT (access + refresh), password reset, device sessions.
+
+Profile: avatar, bio, website, followers/following, privacy (public/private), block/report.
+
+Feed: following feed (cursor pagination), media posts (images/video), likes, comments, saves.
+
+Explore: trending posts/users/hashtags, simple rank (recency × engagement), category tabs.
+
+Search: users, hashtags, captions (Mongo text index), recent searches.
+
+Messaging (DMs): 1-1 and small groups, real-time via Socket.IO, typing/seen, attachments.
+
+Notifications: like, comment, follow, mention, message; live push + inbox tab.
+
+Stories (optional in MVP): 24h ephemeral, viewers list.
+
+Settings: account, privacy, notifications, sessions/devices.
+
+Tech stack
+
+Frontend: React + Vite + TypeScript, React Router, Tailwind (+ shadcn/ui), Zustand/Redux, Axios.
+
+Backend: Node.js + Express + TypeScript, Mongoose (MongoDB Atlas), Socket.IO, Zod (validation), Multer/Busboy, Cloudinary or S3 for media, Redis (rate limit, sessions, caches).
+
+Infra/Dev: PNPM workspaces (Turborepo), ESLint/Prettier, Docker, GitHub Actions, Vercel (web), Railway/Fly/Render (API), MongoDB Atlas, Upstash/Redis Cloud.
+
+Testing: Jest + Supertest (API), Vitest + React Testing Library (web).
+
+High-level architecture
+
+API (REST) serves JSON + presigned upload; emits events to Socket.IO.
+
+MongoDB stores users, posts, relations, messages; Redis caches hot timelines & notifications.
+
+CDN/Cloud storage holds images/videos + thumbnails; webhook back to API when processed.
+
+Web consumes REST + Socket.IO; optimistic UI for likes/comments/messages.
+
+Data models (essentials)
+
+User: username, email, password_hash, avatar, bio, website, isPrivate, followers/following counts, devices.
+
+Post: authorId, caption, media[] {url, type, width, height, duration}, hashtags[], mentions[], likeCount, commentCount, createdAt.
+
+Comment: postId, authorId, text, parentId?, createdAt.
+
+Follow: followerId, followingId, status (“accepted” for private).
+
+Conversation: participantIds[], lastMessage, updatedAt.
+
+Message: conversationId, senderId, text | media, seenBy[], createdAt.
+
+Notification: userId, type (“like|comment|follow|mention|message”), actorId, entityRef, isRead, createdAt.
+
+Story (optional): userId, media, expiresAt, viewers[].
+
+Bookmark/Save, Report, Block (as needed).
+
+API surface (sample)
+
+/auth/register|login|refresh|logout|password/*
+
+/users/:username (GET/PUT); /users/:id/follow (POST/DELETE); /users/suggested
+
+/posts (GET POST); /posts/:id (GET DELETE); /posts/:id/like (POST/DELETE); /posts/:id/comments
+
+/feed (GET cursor=...) (following) ; /explore (GET) (trending)
+
+/search?q=&type=user|hashtag|post
+
+/conversations (GET POST); /conversations/:id/messages
+
+/notifications (GET PATCH read)
+
+/stories (GET/POST) (optional)
+
+Pagination: cursor (createdAt, _id).
+Validation: Zod schemas.
+Rate-limit: per IP + per user for sensitive routes.
+
+Real-time events (Socket.IO)
+
+message:new, message:seen, user:typing
+
+notif:new (like/comment/follow/message)
+
+(Optional) post:liveLike for UI counters
+
+Feed/Explore logic (simple, fast)
+
+Feed: recent posts from followed users; cache first N per user in Redis; backfill from Mongo.
+
+Explore: recent × (likes + comments) with decay; exclude already-seen; shard by hashtag/category.
+
+Security & privacy
+
+JWT (short-lived access, rotating refresh), device sessions, CORS, Helmet, input validation, file-type/size checks, XSS sanitize (DOMPurify client), robust authorization (own vs others), brute-force protection.
+
+Deployment
+
+Web on Vercel; API on Railway/Fly with Docker; MongoDB Atlas; Redis Cloud; Cloudinary for media.
+
+GitHub Actions: lint → test → build → deploy.
+
+Roadmap after v1
+
+Story viewer list, reels (short video feed), hashtag pages, push notifications (FCM/APNs via web push), in-app verification, analytics dashboards, basic moderation.
+
+One-shot “build it” prompt (paste into your AI coding tool)
+
+Goal: Scaffold and implement BlanX, an Instagram-like MERN social app (web only) with REST API, real-time DMs, feed, explore, search, notifications, and profiles. Use TypeScript, PNPM workspaces, Turborepo, MongoDB (Mongoose), Socket.IO, Tailwind + shadcn/ui, Cloudinary, and Redis. No GraphQL.
+
+1) Monorepo & tooling
+
+Create Turborepo with apps:
+
+apps/web (React + Vite + TS)
+
+apps/api (Express + TS)
+
+Shared packages:
+
+packages/ui (reusable React UI with shadcn/ui)
+
+packages/config (eslint, tsconfig, tailwind)
+
+packages/types (Zod schemas + TypeScript types shared)
+
+Use pnpm, ESLint/Prettier, Husky + lint-staged, dotenv.
+
+Add Dockerfiles for api and root docker-compose.yml (api, redis, mongo).
+
+GitHub Actions: install → lint → test → build; deploy web to Vercel and api to Railway.
+
+2) Environment variables
+Create .env.example at root and for each app:
+
+# API
+PORT=8080
+NODE_ENV=development
+MONGO_URI=
+JWT_ACCESS_SECRET=
+JWT_REFRESH_SECRET=
+REDIS_URL=
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+CLIENT_ORIGIN=http://localhost:5173
+
+# WEB
+VITE_API_BASE_URL=http://localhost:8080
+VITE_SOCKET_URL=http://localhost:8080
+VITE_CLOUDINARY_CLOUD_NAME=
+
+
+3) Backend (apps/api)
+
+Express + TS setup, src/index.ts with health route, Helmet, CORS (CLIENT_ORIGIN), cookie-parser, rate-limit, zod-express-middleware.
+
+Connect Mongo (Mongoose) and Redis.
+
+Models (Mongoose):
+
+User, Post, Comment, Follow, Conversation, Message, Notification, Story (optional), Block, Report, Save.
+
+Auth:
+
+Register/login with email/username, bcrypt, send back access+refresh (httpOnly cookie for refresh).
+
+Refresh rotation & revoke on logout; device sessions (model Session).
+
+Uploads:
+
+Presigned upload or server-side upload to Cloudinary (images + short videos). Generate thumbnails; limit size/type.
+
+Routes (controller + service + zod schemas):
+
+/auth: register, login, refresh, logout, me, password reset (token email stub).
+
+/users: get/update profile, change avatar, follow/unfollow, followers/following lists, suggestions.
+
+/posts: CRUD, like/unlike, save/unsave, list by user, comments CRUD (nested via parentId).
+
+/feed: cursor feed for followed users.
+
+/explore: trending feed (simple scoring).
+
+/search: users|hashtags|captions (Mongo text index).
+
+/conversations & /messages: list/create, send message (text/media), mark seen.
+
+/notifications: list, mark read.
+
+Sockets (/socket namespace):
+
+Auth via access token.
+
+Events: message:new, message:seen, user:typing, notif:new.
+
+Pagination:
+
+Implement cursor pagination with _id/createdAt.
+
+Policies:
+
+Private accounts: follow request → pending → accept.
+
+Blocks prevent follow/DM/visibility.
+
+Tests:
+
+Jest + Supertest: auth, posts, feed, search, messages.
+
+4) Frontend (apps/web)
+
+Vite + React + TS, Tailwind configured; shadcn/ui installed (Button, Input, Card, Sheet, Dialog, Dropdown, Avatar, Badge, Tabs, Skeleton, Toast).
+
+Routing (React Router):
+
+/ (feed, auth-guarded), /explore, /search, /messages, /notifications, /profile/:username, /settings, /auth/*.
+
+State:
+
+Auth store (Zustand): tokens, user, refresh flow.
+
+Query data with React Query (TanStack) for caching & optimistic updates.
+
+Pages & core UI:
+
+Auth: login/register forms.
+
+Feed: post composer (caption + upload), post cards (media carousel, like/comment/save, share), infinite scroll, skeleton loaders.
+
+Explore: grid masonry of media, filters (All/Photos/Videos), hashtag chips.
+
+Search: unified search box with tabs (Users, Hashtags, Posts), recent searches.
+
+Messages: left conversation list, right chat pane, input with attachments, typing/seen indicators (Socket.IO), new conversation modal.
+
+Notifications: list grouped by day; live updates.
+
+Profile: header (avatar, stats, follow button), tabbed Posts / Saved / Tagged (saved private), edit profile modal.
+
+Post detail: modal route with comments thread.
+
+UX polish:
+
+Dark theme default, micro-interactions (like animation), optimistic like/comment, toast for actions, pull-to-refresh on mobile viewport.
+
+Media:
+
+Cloudinary widget or direct upload → show preview & progress; fallback drag-drop.
+
+Guards:
+
+Private profile gate, blocked user handling.
+
+5) Search & indexing
+
+MongoDB text index on caption and username/name, hashtag extraction #(\w+).
+
+Recent searches per user (capped).
+
+6) Feed/Explore (simple)
+
+Feed: union of followed user posts ordered by createdAt desc; cache first page in Redis.
+
+Explore: score = likes*3 + comments*5 + recency_decay.
+
+7) Seed scripts
+
+Add scripts/seed.ts to create 20 users, 100 posts, 10 conversations with messages.
+
+8) Commands
+
+Root scripts: dev (concurrently web+api), build, lint, test.
+
+Web: pnpm --filter @blanx/web dev.
+
+API: pnpm --filter @blanx/api dev.
+
+Acceptance criteria
+
+Register/login, create post (image), like/comment/save, see following feed with infinite scroll.
+
+Working explore grid & search (users/posts/hashtags).
+
+Real-time DM (send/receive, typing, seen) via Socket.IO.
+
+Notifications appear live and in inbox.
+
+Profile page with follow/unfollow and counts (reflect immediately).
+
+All protected routes require auth; private profiles enforced.
+
+Docker docker-compose up runs API + Mongo + Redis locally; web starts with pnpm dev.
+
+Basic tests pass (pnpm test).
+
+Deliverables
+
+Complete monorepo with code, .env.example, seed script, Postman collection, README with setup, and GitHub Actions.

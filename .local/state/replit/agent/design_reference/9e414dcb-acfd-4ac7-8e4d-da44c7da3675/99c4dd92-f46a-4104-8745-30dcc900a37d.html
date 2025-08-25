@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlanX - Social Media Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#E1306C',
+                        secondary: '#405DE6',
+                        dark: {
+                            bg: '#000000',
+                            card: '#262626',
+                            border: '#363636',
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="font-inter bg-black text-white min-h-screen">
+    
+    <!-- @COMPONENT: Navigation [fixed navigation with mobile responsive design] -->
+    <nav class="fixed top-0 left-0 right-0 bg-black border-b border-dark-border z-50">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">BlanX</h1>
+                </div>
+                
+                <!-- Search Bar (Desktop) -->
+                <div class="hidden md:flex flex-1 max-w-md mx-8">
+                    <div class="relative w-full">
+                        <input type="text" 
+                               placeholder="Search users, hashtags, posts..." 
+                               class="w-full bg-dark-card border border-dark-border rounded-lg px-4 py-2 pl-10 text-sm focus:outline-none focus:border-primary"
+                               data-mock="true">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"></i>
+                    </div>
+                </div>
+                
+                <!-- Navigation Icons -->
+                <div class="flex items-center space-x-6">
+                    <button class="hover:text-primary transition-colors" data-event="click:navigateToHome">
+                        <i class="fas fa-home text-xl"></i>
+                    </button>
+                    <button class="hover:text-primary transition-colors" data-event="click:navigateToExplore">
+                        <i class="fas fa-compass text-xl"></i>
+                    </button>
+                    <button class="hover:text-primary transition-colors" data-event="click:navigateToMessages">
+                        <i class="fas fa-paper-plane text-xl"></i>
+                    </button>
+                    <button class="hover:text-primary transition-colors relative" data-event="click:showNotifications">
+                        <i class="fas fa-heart text-xl"></i>
+                        <span class="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center" data-bind="notificationCount">3</span>
+                    </button>
+                    <button class="hover:text-primary transition-colors" data-event="click:createPost">
+                        <i class="fas fa-plus-square text-xl"></i>
+                    </button>
+                    <div class="w-8 h-8 rounded-full overflow-hidden border-2 border-primary cursor-pointer" data-event="click:showProfile">
+                        <!-- Profile picture of the current user -->
+                        <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&h=100" 
+                             alt="Profile" class="w-full h-full object-cover" data-bind="currentUser.avatar">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <!-- @END_COMPONENT: Navigation -->
+    
+    <!-- Main Container -->
+    <div class="pt-16 min-h-screen">
+        
+        <!-- @COMPONENT: MainLayout [responsive layout with sidebar and content] -->
+        <div class="max-w-6xl mx-auto flex">
+            
+            <!-- Left Sidebar (Desktop) -->
+            <div class="hidden lg:block w-64 fixed left-0 top-16 h-full px-4 py-6">
+                <div class="space-y-6">
+                    <!-- User Info -->
+                    <div class="flex items-center space-x-3 p-4 bg-dark-card rounded-lg">
+                        <!-- Current user profile image -->
+                        <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&h=100" 
+                             alt="Profile" class="w-12 h-12 rounded-full object-cover" data-bind="currentUser.avatar">
+                        <div>
+                            <h3 class="font-semibold" data-bind="currentUser.username" data-mock="true">john_doe</h3>
+                            <p class="text-sm text-gray-400" data-bind="currentUser.name" data-mock="true">John Doe</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Suggestions -->
+                    <div class="space-y-4">
+                        <h3 class="font-semibold text-gray-300">Suggested for you</h3>
+                        <!-- @MAP: suggestedUsers.map(user => ( -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <!-- Suggested user profile image -->
+                                <img src="https://pixabay.com/get/g15b77063d23200d4fc7703004b0f039e43d98acb4f01a0d74a5372a334dfb1f2991f52f853f1b270791d90598b8b770ee66390bf1537e52aff31743bebd42cae_1280.jpg" 
+                                     alt="Suggested user" class="w-10 h-10 rounded-full object-cover">
+                                <div>
+                                    <p class="font-medium text-sm" data-mock="true">jane_smith</p>
+                                    <p class="text-xs text-gray-400" data-mock="true">Suggested for you</p>
+                                </div>
+                            </div>
+                            <button class="text-primary text-sm font-medium hover:text-white transition-colors" data-event="click:followUser">Follow</button>
+                        </div>
+                        <!-- @END_MAP )) -->
+                        
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <!-- Another suggested user profile image -->
+                                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&h=100" 
+                                     alt="Suggested user" class="w-10 h-10 rounded-full object-cover">
+                                <div>
+                                    <p class="font-medium text-sm" data-mock="true">mike_photo</p>
+                                    <p class="text-xs text-gray-400" data-mock="true">Suggested for you</p>
+                                </div>
+                            </div>
+                            <button class="text-primary text-sm font-medium hover:text-white transition-colors" data-event="click:followUser">Follow</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="flex-1 lg:ml-64 lg:mr-80">
+                
+                <!-- Feed Section -->
+                <div id="feed" class="max-w-md mx-auto py-6 space-y-6">
+                    
+                    <!-- Stories Section -->
+                    <div class="bg-dark-card rounded-lg p-4 border border-dark-border">
+                        <div class="flex space-x-4 overflow-x-auto pb-2">
+                            <!-- @MAP: stories.map(story => ( -->
+                            <div class="flex-shrink-0 text-center">
+                                <div class="w-16 h-16 rounded-full bg-gradient-to-r from-primary to-secondary p-0.5">
+                                    <div class="w-full h-full rounded-full overflow-hidden border-2 border-black">
+                                        <!-- Story user profile image -->
+                                        <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&h=100" 
+                                             alt="Story" class="w-full h-full object-cover">
+                                    </div>
+                                </div>
+                                <p class="text-xs mt-1 text-gray-300" data-mock="true">sarah_k</p>
+                            </div>
+                            <!-- @END_MAP )) -->
+                            
+                            <div class="flex-shrink-0 text-center">
+                                <div class="w-16 h-16 rounded-full bg-gradient-to-r from-primary to-secondary p-0.5">
+                                    <div class="w-full h-full rounded-full overflow-hidden border-2 border-black">
+                                        <!-- Another story user profile image -->
+                                        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&h=100" 
+                                             alt="Story" class="w-full h-full object-cover">
+                                    </div>
+                                </div>
+                                <p class="text-xs mt-1 text-gray-300" data-mock="true">alex_m</p>
+                            </div>
+                            
+                            <div class="flex-shrink-0 text-center">
+                                <div class="w-16 h-16 rounded-full bg-gradient-to-r from-primary to-secondary p-0.5">
+                                    <div class="w-full h-full rounded-full overflow-hidden border-2 border-black">
+                                        <!-- Third story user profile image -->
+                                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&h=100" 
+                                             alt="Story" class="w-full h-full object-cover">
+                                    </div>
+                                </div>
+                                <p class="text-xs mt-1 text-gray-300" data-mock="true">tom_w</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Post Cards -->
+                    <!-- @MAP: posts.map(post => ( -->
+                    <article class="bg-dark-card rounded-lg border border-dark-border overflow-hidden" data-post-id="1">
+                        <!-- Post Header -->
+                        <div class="flex items-center justify-between p-4">
+                            <div class="flex items-center space-x-3">
+                                <!-- Post author profile image -->
+                                <img src="https://pixabay.com/get/gf6afd24623c8b7f06c756d68dce2037ae9f58c414f928de028a8fdf8c41e4e79f7ed780707d51db4f1c9a38d5b2589dbded0f582c090a538a68ae4add4e2fc0a_1280.jpg" 
+                                     alt="User" class="w-8 h-8 rounded-full object-cover" data-bind="post.author.avatar">
+                                <div>
+                                    <p class="font-semibold text-sm" data-bind="post.author.username" data-mock="true">jane_adventures</p>
+                                    <p class="text-xs text-gray-400" data-bind="post.location" data-mock="true">New York, NY</p>
+                                </div>
+                            </div>
+                            <button class="text-gray-400 hover:text-white">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Post Image -->
+                        <div class="aspect-square bg-dark-border">
+                            <!-- Beautiful landscape post image -->
+                            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&h=600" 
+                                 alt="Post content" class="w-full h-full object-cover" data-bind="post.media[0].url">
+                        </div>
+                        
+                        <!-- Post Actions -->
+                        <div class="p-4 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <button class="hover:text-red-500 transition-colors" data-event="click:toggleLike">
+                                        <i class="far fa-heart text-xl"></i>
+                                    </button>
+                                    <button class="hover:text-primary transition-colors" data-event="click:openComments">
+                                        <i class="far fa-comment text-xl"></i>
+                                    </button>
+                                    <button class="hover:text-primary transition-colors" data-event="click:sharePost">
+                                        <i class="far fa-paper-plane text-xl"></i>
+                                    </button>
+                                </div>
+                                <button class="hover:text-primary transition-colors" data-event="click:savePost">
+                                    <i class="far fa-bookmark text-xl"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Like Count -->
+                            <p class="font-semibold text-sm" data-bind="post.likeCount" data-mock="true">847 likes</p>
+                            
+                            <!-- Caption -->
+                            <div>
+                                <p class="text-sm">
+                                    <span class="font-semibold" data-bind="post.author.username" data-mock="true">jane_adventures</span>
+                                    <span data-bind="post.caption" data-mock="true"> Amazing sunset from last night's hike! The view was absolutely breathtaking 🌅 </span>
+                                    <span class="text-primary" data-mock="true">#sunset #hiking #nature #photography</span>
+                                </p>
+                            </div>
+                            
+                            <!-- Comments -->
+                            <button class="text-sm text-gray-400 hover:text-white" data-event="click:viewAllComments">
+                                View all <span data-bind="post.commentCount" data-mock="true">23</span> comments
+                            </button>
+                            
+                            <!-- Recent Comment -->
+                            <div class="text-sm">
+                                <span class="font-semibold" data-mock="true">mike_photo</span>
+                                <span class="text-gray-300" data-mock="true"> Incredible shot! What camera did you use? </span>
+                            </div>
+                            
+                            <!-- Time -->
+                            <p class="text-xs text-gray-400 uppercase" data-bind="post.createdAt" data-mock="true">2 hours ago</p>
+                        </div>
+                    </article>
+                    <!-- @END_MAP )) -->
+                    
+                    <!-- Second Post -->
+                    <article class="bg-dark-card rounded-lg border border-dark-border overflow-hidden" data-post-id="2">
+                        <div class="flex items-center justify-between p-4">
+                            <div class="flex items-center space-x-3">
+                                <!-- Second post author profile image -->
+                                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&h=100" 
+                                     alt="User" class="w-8 h-8 rounded-full object-cover">
+                                <div>
+                                    <p class="font-semibold text-sm" data-mock="true">urban_explorer</p>
+                                    <p class="text-xs text-gray-400" data-mock="true">Tokyo, Japan</p>
+                                </div>
+                            </div>
+                            <button class="text-gray-400 hover:text-white">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="aspect-square bg-dark-border">
+                            <!-- Urban cityscape post image -->
+                            <img src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&h=600" 
+                                 alt="Post content" class="w-full h-full object-cover">
+                        </div>
+                        
+                        <div class="p-4 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <button class="hover:text-red-500 transition-colors text-red-500">
+                                        <i class="fas fa-heart text-xl"></i>
+                                    </button>
+                                    <button class="hover:text-primary transition-colors">
+                                        <i class="far fa-comment text-xl"></i>
+                                    </button>
+                                    <button class="hover:text-primary transition-colors">
+                                        <i class="far fa-paper-plane text-xl"></i>
+                                    </button>
+                                </div>
+                                <button class="hover:text-primary transition-colors text-primary">
+                                    <i class="fas fa-bookmark text-xl"></i>
+                                </button>
+                            </div>
+                            
+                            <p class="font-semibold text-sm" data-mock="true">1,234 likes</p>
+                            
+                            <div>
+                                <p class="text-sm">
+                                    <span class="font-semibold" data-mock="true">urban_explorer</span>
+                                    <span data-mock="true"> Night lights in Tokyo never get old ✨ Always discovering new perspectives in this amazing city </span>
+                                    <span class="text-primary" data-mock="true">#tokyo #nightphotography #urban #cityscape</span>
+                                </p>
+                            </div>
+                            
+                            <button class="text-sm text-gray-400 hover:text-white">
+                                View all <span data-mock="true">89</span> comments
+                            </button>
+                            
+                            <div class="text-sm">
+                                <span class="font-semibold" data-mock="true">jane_adventures</span>
+                                <span class="text-gray-300" data-mock="true"> Tokyo is always magical! 🏙️ </span>
+                            </div>
+                            
+                            <p class="text-xs text-gray-400 uppercase" data-mock="true">5 hours ago</p>
+                        </div>
+                    </article>
+                    
+                    <!-- Loading Skeleton -->
+                    <div class="bg-dark-card rounded-lg border border-dark-border overflow-hidden animate-pulse">
+                        <div class="flex items-center space-x-3 p-4">
+                            <div class="w-8 h-8 bg-dark-border rounded-full"></div>
+                            <div class="space-y-2">
+                                <div class="h-3 bg-dark-border rounded w-24"></div>
+                                <div class="h-2 bg-dark-border rounded w-16"></div>
+                            </div>
+                        </div>
+                        <div class="aspect-square bg-dark-border"></div>
+                        <div class="p-4 space-y-3">
+                            <div class="h-4 bg-dark-border rounded w-20"></div>
+                            <div class="space-y-2">
+                                <div class="h-3 bg-dark-border rounded"></div>
+                                <div class="h-3 bg-dark-border rounded w-3/4"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <!-- Right Sidebar (Desktop) -->
+            <div class="hidden xl:block w-80 fixed right-0 top-16 h-full px-4 py-6">
+                <div class="space-y-6">
+                    <!-- Messages Preview -->
+                    <div class="bg-dark-card rounded-lg p-4 border border-dark-border">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-semibold">Messages</h3>
+                            <button class="text-primary text-sm" data-event="click:viewAllMessages">View all</button>
+                        </div>
+                        <div class="space-y-3">
+                            <!-- @MAP: recentMessages.map(message => ( -->
+                            <div class="flex items-center space-x-3 cursor-pointer hover:bg-dark-border rounded-lg p-2 transition-colors">
+                                <!-- Message sender profile image -->
+                                <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&h=100" 
+                                     alt="User" class="w-10 h-10 rounded-full object-cover">
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-medium text-sm" data-mock="true">sarah_k</p>
+                                    <p class="text-xs text-gray-400 truncate" data-mock="true">Hey! Did you see the sunset photos...</p>
+                                </div>
+                                <div class="w-2 h-2 bg-primary rounded-full"></div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                            
+                            <div class="flex items-center space-x-3 cursor-pointer hover:bg-dark-border rounded-lg p-2 transition-colors">
+                                <!-- Another message sender profile image -->
+                                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&h=100" 
+                                     alt="User" class="w-10 h-10 rounded-full object-cover">
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-medium text-sm" data-mock="true">alex_m</p>
+                                    <p class="text-xs text-gray-400 truncate" data-mock="true">Thanks for the follow!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Trending Hashtags -->
+                    <div class="bg-dark-card rounded-lg p-4 border border-dark-border">
+                        <h3 class="font-semibold mb-4">Trending</h3>
+                        <div class="space-y-3">
+                            <!-- @MAP: trendingHashtags.map(hashtag => ( -->
+                            <div class="cursor-pointer hover:text-primary transition-colors">
+                                <p class="font-medium text-sm" data-mock="true">#photography</p>
+                                <p class="text-xs text-gray-400" data-mock="true">2.4K posts</p>
+                            </div>
+                            <!-- @END_MAP )) -->
+                            
+                            <div class="cursor-pointer hover:text-primary transition-colors">
+                                <p class="font-medium text-sm" data-mock="true">#sunset</p>
+                                <p class="text-xs text-gray-400" data-mock="true">1.8K posts</p>
+                            </div>
+                            
+                            <div class="cursor-pointer hover:text-primary transition-colors">
+                                <p class="font-medium text-sm" data-mock="true">#nature</p>
+                                <p class="text-xs text-gray-400" data-mock="true">3.2K posts</p>
+                            </div>
+                            
+                            <div class="cursor-pointer hover:text-primary transition-colors">
+                                <p class="font-medium text-sm" data-mock="true">#travel</p>
+                                <p class="text-xs text-gray-400" data-mock="true">4.1K posts</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: MainLayout -->
+        
+    </div>
+    
+    <!-- @COMPONENT: CreatePostModal [modal for creating new posts] -->
+    <div id="createPostModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-dark-card rounded-lg max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-4 border-b border-dark-border">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold">Create new post</h2>
+                    <button class="text-gray-400 hover:text-white" data-event="click:closeCreatePost">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-4">
+                <!-- Image Upload Area -->
+                <div class="border-2 border-dashed border-dark-border rounded-lg p-8 text-center mb-4">
+                    <i class="fas fa-camera text-4xl text-gray-400 mb-4"></i>
+                    <p class="text-gray-400 mb-2">Drag photos here</p>
+                    <button class="bg-primary text-white px-4 py-2 rounded-lg text-sm hover:bg-opacity-80 transition-colors">
+                        Select from computer
+                    </button>
+                </div>
+                
+                <!-- Caption Input -->
+                <textarea placeholder="Write a caption..." 
+                          class="w-full bg-transparent border border-dark-border rounded-lg p-3 text-sm resize-none focus:outline-none focus:border-primary"
+                          rows="3" data-mock="true"></textarea>
+                
+                <!-- Post Button -->
+                <div class="flex justify-end mt-4">
+                    <button class="bg-primary text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-opacity-80 transition-colors" data-event="click:submitPost">
+                        Share
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: CreatePostModal -->
+    
+    <!-- @COMPONENT: ProfileModal [user profile view modal] -->
+    <div id="profileModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-dark-card rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <!-- Profile Header -->
+                <div class="flex items-start space-x-8 mb-8">
+                    <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-primary">
+                        <!-- Profile user's main image -->
+                        <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&h=300" 
+                             alt="Profile" class="w-full h-full object-cover">
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-4 mb-4">
+                            <h1 class="text-2xl font-light" data-mock="true">john_doe</h1>
+                            <button class="bg-primary text-white px-6 py-1.5 rounded-lg text-sm font-medium hover:bg-opacity-80 transition-colors">
+                                Edit profile
+                            </button>
+                            <button class="text-gray-400 hover:text-white">
+                                <i class="fas fa-cog text-xl"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Stats -->
+                        <div class="flex space-x-8 mb-4">
+                            <div class="text-center">
+                                <span class="font-semibold" data-mock="true">127</span>
+                                <span class="text-gray-400 text-sm ml-1">posts</span>
+                            </div>
+                            <div class="text-center">
+                                <span class="font-semibold" data-mock="true">2,543</span>
+                                <span class="text-gray-400 text-sm ml-1">followers</span>
+                            </div>
+                            <div class="text-center">
+                                <span class="font-semibold" data-mock="true">1,234</span>
+                                <span class="text-gray-400 text-sm ml-1">following</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Bio -->
+                        <div class="space-y-1">
+                            <h2 class="font-semibold" data-mock="true">John Doe</h2>
+                            <p class="text-gray-300" data-mock="true">📸 Photography enthusiast</p>
+                            <p class="text-gray-300" data-mock="true">🌍 Traveling the world</p>
+                            <a href="#" class="text-primary" data-mock="true">www.johndoephotography.com</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Posts Grid -->
+                <div class="border-t border-dark-border pt-6">
+                    <div class="grid grid-cols-3 gap-1">
+                        <!-- @MAP: userPosts.map(post => ( -->
+                        <div class="aspect-square bg-dark-border relative cursor-pointer group">
+                            <!-- User's post thumbnail -->
+                            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&h=300" 
+                                 alt="Post" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <div class="flex items-center space-x-4 text-white">
+                                    <div class="flex items-center space-x-1">
+                                        <i class="fas fa-heart"></i>
+                                        <span data-mock="true">847</span>
+                                    </div>
+                                    <div class="flex items-center space-x-1">
+                                        <i class="fas fa-comment"></i>
+                                        <span data-mock="true">23</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                        
+                        <!-- Additional post thumbnails -->
+                        <div class="aspect-square bg-dark-border relative cursor-pointer group">
+                            <!-- Another user post thumbnail -->
+                            <img src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&h=300" 
+                                 alt="Post" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <div class="flex items-center space-x-4 text-white">
+                                    <div class="flex items-center space-x-1">
+                                        <i class="fas fa-heart"></i>
+                                        <span data-mock="true">1234</span>
+                                    </div>
+                                    <div class="flex items-center space-x-1">
+                                        <i class="fas fa-comment"></i>
+                                        <span data-mock="true">89</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- More thumbnails to fill the grid -->
+                        <div class="aspect-square bg-dark-border relative cursor-pointer group">
+                            <!-- Third user post thumbnail -->
+                            <img src="https://images.unsplash.com/photo-1501594907352-04cda38ebc29?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=300&h=300" 
+                                 alt="Post" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <div class="flex items-center space-x-4 text-white">
+                                    <div class="flex items-center space-x-1">
+                                        <i class="fas fa-heart"></i>
+                                        <span data-mock="true">562</span>
+                                    </div>
+                                    <div class="flex items-center space-x-1">
+                                        <i class="fas fa-comment"></i>
+                                        <span data-mock="true">45</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: ProfileModal -->
+    
+    <!-- Mobile Bottom Navigation -->
+    <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-black border-t border-dark-border">
+        <div class="flex justify-around py-2">
+            <button class="p-3 hover:text-primary transition-colors">
+                <i class="fas fa-home text-xl"></i>
+            </button>
+            <button class="p-3 hover:text-primary transition-colors">
+                <i class="fas fa-search text-xl"></i>
+            </button>
+            <button class="p-3 hover:text-primary transition-colors">
+                <i class="fas fa-plus-square text-xl"></i>
+            </button>
+            <button class="p-3 hover:text-primary transition-colors relative">
+                <i class="fas fa-heart text-xl"></i>
+                <span class="absolute top-1 right-1 bg-primary text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">3</span>
+            </button>
+            <button class="p-3">
+                <div class="w-6 h-6 rounded-full overflow-hidden border border-primary">
+                    <!-- Mobile profile image -->
+                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&h=100" 
+                         alt="Profile" class="w-full h-full object-cover">
+                </div>
+            </button>
+        </div>
+    </nav>
+    
+    <script>
+        // TODO: Implement actual functionality with React/MERN stack
+        (function() {
+            // Modal functionality
+            const createPostBtn = document.querySelector('[data-event="click:createPost"]');
+            const createPostModal = document.getElementById('createPostModal');
+            const closeCreatePostBtn = document.querySelector('[data-event="click:closeCreatePost"]');
+            
+            if (createPostBtn && createPostModal) {
+                createPostBtn.addEventListener('click', () => {
+                    createPostModal.classList.remove('hidden');
+                });
+            }
+            
+            if (closeCreatePostBtn && createPostModal) {
+                closeCreatePostBtn.addEventListener('click', () => {
+                    createPostModal.classList.add('hidden');
+                });
+            }
+            
+            // Profile modal
+            const profileBtn = document.querySelector('[data-event="click:showProfile"]');
+            const profileModal = document.getElementById('profileModal');
+            
+            if (profileBtn && profileModal) {
+                profileBtn.addEventListener('click', () => {
+                    profileModal.classList.remove('hidden');
+                });
+                
+                profileModal.addEventListener('click', (e) => {
+                    if (e.target === profileModal) {
+                        profileModal.classList.add('hidden');
+                    }
+                });
+            }
+            
+            // Like button animation
+            const likeButtons = document.querySelectorAll('[data-event="click:toggleLike"]');
+            likeButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const icon = this.querySelector('i');
+                    if (icon.classList.contains('far')) {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                        this.classList.add('text-red-500');
+                        // Animate like (would be handled by React in real app)
+                        this.style.transform = 'scale(1.2)';
+                        setTimeout(() => {
+                            this.style.transform = 'scale(1)';
+                        }, 150);
+                    } else {
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                        this.classList.remove('text-red-500');
+                    }
+                });
+            });
+            
+            // Close modals on outside click
+            createPostModal?.addEventListener('click', (e) => {
+                if (e.target === createPostModal) {
+                    createPostModal.classList.add('hidden');
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
