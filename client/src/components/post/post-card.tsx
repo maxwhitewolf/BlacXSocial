@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import type { User } from "@shared/schema";
 
 interface PostCardProps {
@@ -12,9 +13,11 @@ interface PostCardProps {
 }
 
 export default function PostCard({ post, currentUser }: PostCardProps) {
-  const [isLiked, setIsLiked] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
+  const [isLiked, setIsLiked] = useState(post.isLiked || false);
+  const [isSaved, setIsSaved] = useState(post.isSaved || false);
   const [showComments, setShowComments] = useState(false);
+  const [likeCount, setLikeCount] = useState(post.likeCount || 0);
+  const [newComment, setNewComment] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -27,7 +30,9 @@ export default function PostCard({ post, currentUser }: PostCardProps) {
       }
     },
     onSuccess: () => {
-      setIsLiked(!isLiked);
+      const newIsLiked = !isLiked;
+      setIsLiked(newIsLiked);
+      setLikeCount(prev => newIsLiked ? prev + 1 : prev - 1);
       queryClient.invalidateQueries({ queryKey: ["/api/feed"] });
     },
     onError: () => {
@@ -69,6 +74,34 @@ export default function PostCard({ post, currentUser }: PostCardProps) {
 
   const handleSave = () => {
     saveMutation.mutate();
+  };
+
+  const { data: comments } = useQuery({
+    queryKey: ["/api/posts", post.id, "comments"],
+    enabled: showComments,
+  });
+
+  const addCommentMutation = useMutation({
+    mutationFn: async (commentData: { text: string }) => {
+      const res = await apiRequest("POST", `/api/posts/${post.id}/comments`, commentData);
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/posts", post.id, "comments"] });
+      setNewComment("");
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to add comment",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleAddComment = () => {
+    if (!newComment.trim()) return;
+    addCommentMutation.mutate({ text: newComment.trim() });
   };
 
   return (
@@ -149,7 +182,7 @@ export default function PostCard({ post, currentUser }: PostCardProps) {
         
         {/* Like Count */}
         <p className="font-semibold text-sm" data-testid="post-like-count">
-          {post.likeCount || 0} likes
+          {likeCount} likes
         </p>
         
         {/* Caption */}
@@ -175,6 +208,53 @@ export default function PostCard({ post, currentUser }: PostCardProps) {
           >
             View all {post.commentCount} comments
           </button>
+        )}
+        
+        {/* Comments Section */}
+        {showComments && (
+          <div className="space-y-3">
+            {Array.isArray(comments) && comments.length > 0 ? (
+              <div className="space-y-2">
+                {comments.map((comment: any) => (
+                  <div key={comment.id} className="flex space-x-2 text-sm">
+                    <Link href={`/profile/${comment.author.username}`}>
+                      <span className="font-semibold hover:text-pink-500 transition-colors cursor-pointer">
+                        {comment.author.username}
+                      </span>
+                    </Link>
+                    <span>{comment.text}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-neutral-400">No comments yet</p>
+            )}
+            
+            {/* Add Comment */}
+            <div className="flex space-x-2">
+              <Input
+                placeholder="Add a comment..."
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddComment();
+                  }
+                }}
+                className="flex-1 bg-transparent border-none p-0 text-sm focus:ring-0"
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleAddComment}
+                disabled={!newComment.trim() || addCommentMutation.isPending}
+                className="text-pink-500 hover:text-pink-400 p-0 h-auto"
+              >
+                Post
+              </Button>
+            </div>
+          </div>
         )}
         
         {/* Time */}

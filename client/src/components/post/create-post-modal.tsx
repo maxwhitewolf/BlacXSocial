@@ -106,13 +106,20 @@ export default function CreatePostModal({ isOpen, onClose }: CreatePostModalProp
     setUploading(true);
 
     try {
-      // In a real app, you would upload files to a service like Cloudinary
-      // For now, we'll create mock media objects
-      const mediaObjects = selectedFiles.map((file, index) => ({
-        url: previews[index], // In production, this would be the uploaded URL
-        type: file.type.startsWith('image/') ? 'image' as const : 'video' as const,
-        width: 1080, // These would come from actual file analysis
-        height: 1080,
+      // Convert files to base64 for storage (simplified approach)
+      const mediaObjects = await Promise.all(selectedFiles.map(async (file, index) => {
+        return new Promise<{url: string, type: 'image' | 'video', width: number, height: number}>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            resolve({
+              url: reader.result as string, // Base64 data URL
+              type: file.type.startsWith('image/') ? 'image' as const : 'video' as const,
+              width: 1080, // These would come from actual file analysis
+              height: 1080,
+            });
+          };
+          reader.readAsDataURL(file);
+        });
       }));
 
       const postData = {

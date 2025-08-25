@@ -31,7 +31,7 @@ export default function HomePage() {
       <div className="pt-16 min-h-screen">
         <div className="max-w-6xl mx-auto flex">
           {/* Left Sidebar */}
-          <Sidebar user={user} suggestedUsers={suggestedUsers || []} />
+          <Sidebar user={user} suggestedUsers={Array.isArray(suggestedUsers) ? suggestedUsers : []} />
           
           {/* Main Content */}
           <div className="flex-1 lg:ml-64 lg:mr-80">
@@ -60,15 +60,15 @@ export default function HomePage() {
                     </div>
                   </div>
                 ))
-              ) : feedPosts?.length === 0 ? (
+              ) : !Array.isArray(feedPosts) || feedPosts.length === 0 ? (
                 <div className="bg-neutral-900 rounded-lg border border-neutral-800 p-8 text-center">
                   <p className="text-neutral-400 mb-4">Your feed is empty!</p>
                   <p className="text-sm text-neutral-500">Follow some users to see their posts here.</p>
                 </div>
               ) : (
-                feedPosts?.map((post: any) => (
+                Array.isArray(feedPosts) ? feedPosts.map((post: any) => (
                   <PostCard key={post.id} post={post} currentUser={user} />
-                ))
+                )) : null
               )}
             </div>
           </div>

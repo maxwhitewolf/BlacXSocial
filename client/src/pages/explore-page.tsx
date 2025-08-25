@@ -24,7 +24,7 @@ export default function ExplorePage() {
                 <Skeleton key={i} className="aspect-square" />
               ))}
             </div>
-          ) : explorePosts?.length === 0 ? (
+          ) : !Array.isArray(explorePosts) || explorePosts.length === 0 ? (
             <div className="text-center py-12">
               <div className="w-16 h-16 mx-auto mb-4 rounded-full border-2 border-neutral-700 flex items-center justify-center">
                 <i className="fas fa-compass text-2xl text-neutral-400"></i>
@@ -34,7 +34,7 @@ export default function ExplorePage() {
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-1">
-              {explorePosts?.map((post: any, index: number) => (
+              {Array.isArray(explorePosts) ? explorePosts.map((post: any, index: number) => (
                 <div 
                   key={post.id} 
                   className={`${
@@ -68,7 +68,7 @@ export default function ExplorePage() {
                     </div>
                   )}
                 </div>
-              ))}
+              )) : null}
             </div>
           )}
         </div>

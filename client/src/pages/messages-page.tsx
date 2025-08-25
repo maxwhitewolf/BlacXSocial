@@ -1,15 +1,19 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import Navigation from "@/components/layout/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function MessagesPage() {
   const { user } = useAuth();
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
   const [newMessage, setNewMessage] = useState("");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: conversations, isLoading } = useQuery({
     queryKey: ["/api/conversations"],
@@ -20,6 +24,37 @@ export default function MessagesPage() {
     queryKey: ["/api/conversations", selectedConversation?.id, "messages"],
     enabled: !!selectedConversation?.id,
   });
+
+  const sendMessageMutation = useMutation({
+    mutationFn: async (messageData: { text: string }) => {
+      const res = await apiRequest("POST", `/api/conversations/${selectedConversation.id}/messages`, messageData);
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", selectedConversation?.id, "messages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      setNewMessage("");
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to send message",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSendMessage = () => {
+    if (!newMessage.trim() || !selectedConversation) return;
+    sendMessageMutation.mutate({ text: newMessage.trim() });
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
 
   if (!user) return null;
 
@@ -48,7 +83,7 @@ export default function MessagesPage() {
                     </div>
                   ))}
                 </div>
-              ) : conversations?.length === 0 ? (
+              ) : !Array.isArray(conversations) || conversations.length === 0 ? (
                 <div className="text-center py-12 px-4">
                   <div className="w-16 h-16 mx-auto mb-4 rounded-full border-2 border-neutral-700 flex items-center justify-center">
                     <i className="fas fa-paper-plane text-2xl text-neutral-400"></i>
@@ -58,7 +93,7 @@ export default function MessagesPage() {
                 </div>
               ) : (
                 <div className="space-y-1">
-                  {conversations?.map((conversation: any) => (
+                  {Array.isArray(conversations) ? conversations.map((conversation: any) => (
                     <div
                       key={conversation.id}
                       className={`flex items-center space-x-3 p-4 cursor-pointer hover:bg-neutral-800 transition-colors ${
@@ -84,7 +119,7 @@ export default function MessagesPage() {
                         <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
                       )}
                     </div>
-                  ))}
+                  )) : null}
                 </div>
               )}
             </div>
@@ -116,12 +151,12 @@ export default function MessagesPage() {
                 
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {messages?.length === 0 ? (
+                  {!Array.isArray(messages) || messages.length === 0 ? (
                     <div className="text-center text-neutral-400 text-sm py-8">
                       No messages yet. Say hello!
                     </div>
                   ) : (
-                    messages?.map((message: any) => (
+                    Array.isArray(messages) ? messages.map((message: any) => (
                       <div
                         key={message.id}
                         className={`flex ${message.senderId === user.id ? 'justify-end' : 'justify-start'}`}
@@ -140,7 +175,7 @@ export default function MessagesPage() {
                           </p>
                         </div>
                       </div>
-                    ))
+                    )) : null
                   )}
                 </div>
                 
@@ -151,15 +186,21 @@ export default function MessagesPage() {
                       placeholder="Type a message..."
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyPress={handleKeyPress}
                       className="flex-1 bg-neutral-800 border-neutral-700"
                       data-testid="input-new-message"
                     />
                     <Button 
                       className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
-                      disabled={!newMessage.trim()}
+                      disabled={!newMessage.trim() || sendMessageMutation.isPending}
+                      onClick={handleSendMessage}
                       data-testid="button-send-message"
                     >
-                      <i className="fas fa-paper-plane"></i>
+                      {sendMessageMutation.isPending ? (
+                        <i className="fas fa-spinner fa-spin"></i>
+                      ) : (
+                        <i className="fas fa-paper-plane"></i>
+                      )}
                     </Button>
                   </div>
                 </div>

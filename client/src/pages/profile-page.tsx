@@ -187,7 +187,7 @@ export default function ProfilePage() {
                       <Skeleton key={i} className="aspect-square" />
                     ))}
                   </div>
-                ) : posts?.length === 0 ? (
+                ) : !Array.isArray(posts) || posts.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="w-16 h-16 mx-auto mb-4 rounded-full border-2 border-neutral-700 flex items-center justify-center">
                       <i className="fas fa-camera text-2xl text-neutral-400"></i>
@@ -199,7 +199,7 @@ export default function ProfilePage() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-3 gap-1">
-                    {posts?.map((post: any) => (
+                    {Array.isArray(posts) ? posts.map((post: any) => (
                       <div 
                         key={post.id} 
                         className="aspect-square bg-neutral-800 relative cursor-pointer group"
@@ -223,14 +223,14 @@ export default function ProfilePage() {
                           </div>
                         </div>
                       </div>
-                    ))}
+                    )) : null}
                   </div>
                 )}
               </TabsContent>
               
               {isOwnProfile && (
                 <TabsContent value="saved" className="mt-6">
-                  {savedPosts?.length === 0 ? (
+                  {!Array.isArray(savedPosts) || savedPosts.length === 0 ? (
                     <div className="text-center py-12">
                       <div className="w-16 h-16 mx-auto mb-4 rounded-full border-2 border-neutral-700 flex items-center justify-center">
                         <i className="fas fa-bookmark text-2xl text-neutral-400"></i>
@@ -240,7 +240,7 @@ export default function ProfilePage() {
                     </div>
                   ) : (
                     <div className="grid grid-cols-3 gap-1">
-                      {savedPosts?.map((save: any) => (
+                      {Array.isArray(savedPosts) ? savedPosts.map((save: any) => (
                         <div 
                           key={save.id} 
                           className="aspect-square bg-neutral-800 relative cursor-pointer group"
@@ -264,7 +264,7 @@ export default function ProfilePage() {
                             </div>
                           </div>
                         </div>
-                      ))}
+                      )) : null}
                     </div>
                   )}
                 </TabsContent>

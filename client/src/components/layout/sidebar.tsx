@@ -1,5 +1,8 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import type { User } from "@shared/schema";
 
 interface SidebarProps {
@@ -8,6 +11,33 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ user, suggestedUsers }: SidebarProps) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const followMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      await apiRequest("POST", `/api/users/${userId}/follow`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users/suggested"] });
+      toast({
+        title: "Following!",
+        description: "You are now following this user.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to follow user.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleFollow = (userId: string) => {
+    followMutation.mutate(userId);
+  };
+
   return (
     <div className="hidden lg:block w-64 fixed left-0 top-16 h-full px-4 py-6" data-testid="sidebar">
       <div className="space-y-6">
@@ -55,9 +85,11 @@ export default function Sidebar({ user, suggestedUsers }: SidebarProps) {
                   variant="ghost" 
                   size="sm"
                   className="text-pink-500 hover:text-white hover:bg-pink-500 transition-colors"
+                  onClick={() => handleFollow(suggestedUser.id)}
+                  disabled={followMutation.isPending}
                   data-testid={`button-follow-${suggestedUser.id}`}
                 >
-                  Follow
+                  {followMutation.isPending ? 'Following...' : 'Follow'}
                 </Button>
               </div>
             ))
