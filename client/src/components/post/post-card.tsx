@@ -105,36 +105,36 @@ export default function PostCard({ post, currentUser }: PostCardProps) {
   };
 
   return (
-    <article className="bg-neutral-900 rounded-lg border border-neutral-800 overflow-hidden" data-testid={`post-card-${post.id}`}>
+    <article className="card p-0 overflow-hidden animate-fade-in" data-testid={`post-card-${post.id}`}>
       {/* Post Header */}
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center space-x-3">
           <Link href={`/profile/${post.author.username}`}>
             <img 
-              src={post.author.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author.username)}&background=e1306c&color=fff`}
+              src={post.author.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author.username)}&background=4f46e5&color=fff`}
               alt="User" 
-              className="w-8 h-8 rounded-full object-cover cursor-pointer"
+              className="w-10 h-10 rounded-full object-cover cursor-pointer border-2 border-muted-foreground/20"
               data-testid="post-author-avatar"
             />
           </Link>
           <div>
             <Link href={`/profile/${post.author.username}`}>
-              <p className="font-semibold text-sm hover:text-pink-500 transition-colors cursor-pointer" data-testid="post-author-username">
+              <p className="font-semibold text-sm hover:text-primary transition-colors cursor-pointer" data-testid="post-author-username">
                 {post.author.username}
               </p>
             </Link>
             {post.location && (
-              <p className="text-xs text-neutral-400" data-testid="post-location">{post.location}</p>
+              <p className="text-xs text-muted-foreground" data-testid="post-location">{post.location}</p>
             )}
           </div>
         </div>
-        <button className="text-neutral-400 hover:text-white" data-testid="post-menu">
+        <button className="btn-ghost p-2 text-muted-foreground" data-testid="post-menu">
           <i className="fas fa-ellipsis-h"></i>
         </button>
       </div>
       
       {/* Post Image */}
-      <div className="aspect-square bg-neutral-800">
+      <div className="aspect-square bg-muted">
         <img 
           src={post.media[0]?.url} 
           alt="Post content" 
@@ -148,9 +148,9 @@ export default function PostCard({ post, currentUser }: PostCardProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button 
-              className={`transition-colors ${
-                isLiked ? 'text-red-500' : 'hover:text-red-500'
-              }`}
+              className={`btn-ghost p-2 transition-all ${
+                isLiked ? 'text-red-500' : 'text-muted-foreground hover:text-red-500'
+              } ${isLiked ? 'animate-heart' : ''}`}
               onClick={handleLike}
               disabled={likeMutation.isPending}
               data-testid="button-like"
@@ -158,19 +158,19 @@ export default function PostCard({ post, currentUser }: PostCardProps) {
               <i className={`${isLiked ? 'fas' : 'far'} fa-heart text-xl`}></i>
             </button>
             <button 
-              className="hover:text-pink-500 transition-colors"
+              className="btn-ghost p-2 text-muted-foreground hover:text-primary transition-colors"
               onClick={() => setShowComments(!showComments)}
               data-testid="button-comments"
             >
               <i className="far fa-comment text-xl"></i>
             </button>
-            <button className="hover:text-pink-500 transition-colors" data-testid="button-share">
+            <button className="btn-ghost p-2 text-muted-foreground hover:text-primary transition-colors" data-testid="button-share">
               <i className="far fa-paper-plane text-xl"></i>
             </button>
           </div>
           <button 
-            className={`transition-colors ${
-              isSaved ? 'text-pink-500' : 'hover:text-pink-500'
+            className={`btn-ghost p-2 transition-colors ${
+              isSaved ? 'text-primary' : 'text-muted-foreground hover:text-primary'
             }`}
             onClick={handleSave}
             disabled={saveMutation.isPending}
@@ -182,7 +182,7 @@ export default function PostCard({ post, currentUser }: PostCardProps) {
         
         {/* Like Count */}
         <p className="font-semibold text-sm" data-testid="post-like-count">
-          {likeCount} likes
+          {likeCount.toLocaleString()} likes
         </p>
         
         {/* Caption */}
@@ -190,7 +190,7 @@ export default function PostCard({ post, currentUser }: PostCardProps) {
           <div>
             <p className="text-sm">
               <Link href={`/profile/${post.author.username}`}>
-                <span className="font-semibold hover:text-pink-500 transition-colors cursor-pointer">
+                <span className="font-semibold hover:text-primary transition-colors cursor-pointer">
                   {post.author.username}
                 </span>
               </Link>
@@ -202,7 +202,7 @@ export default function PostCard({ post, currentUser }: PostCardProps) {
         {/* Comments */}
         {post.commentCount > 0 && (
           <button 
-            className="text-sm text-neutral-400 hover:text-white transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             onClick={() => setShowComments(!showComments)}
             data-testid="button-view-comments"
           >
@@ -218,7 +218,7 @@ export default function PostCard({ post, currentUser }: PostCardProps) {
                 {comments.map((comment: any) => (
                   <div key={comment.id} className="flex space-x-2 text-sm">
                     <Link href={`/profile/${comment.author.username}`}>
-                      <span className="font-semibold hover:text-pink-500 transition-colors cursor-pointer">
+                      <span className="font-semibold hover:text-primary transition-colors cursor-pointer">
                         {comment.author.username}
                       </span>
                     </Link>
@@ -227,7 +227,7 @@ export default function PostCard({ post, currentUser }: PostCardProps) {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-neutral-400">No comments yet</p>
+              <p className="text-sm text-muted-foreground">No comments yet</p>
             )}
             
             {/* Add Comment */}
@@ -242,14 +242,14 @@ export default function PostCard({ post, currentUser }: PostCardProps) {
                     handleAddComment();
                   }
                 }}
-                className="flex-1 bg-transparent border-none p-0 text-sm focus:ring-0"
+                className="flex-1 bg-transparent border-none p-0 text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
               />
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleAddComment}
                 disabled={!newComment.trim() || addCommentMutation.isPending}
-                className="text-pink-500 hover:text-pink-400 p-0 h-auto"
+                className="text-primary hover:text-primary/80 p-0 h-auto font-semibold"
               >
                 Post
               </Button>
@@ -258,8 +258,8 @@ export default function PostCard({ post, currentUser }: PostCardProps) {
         )}
         
         {/* Time */}
-        <p className="text-xs text-neutral-400 uppercase" data-testid="post-time">
-          {new Date(post.createdAt).toLocaleDateString()}
+        <p className="text-xs text-muted-foreground uppercase tracking-wide" data-testid="post-time">
+          {new Date(post.createdAt).toLocaleDateString()} • {new Date(post.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </p>
       </div>
     </article>

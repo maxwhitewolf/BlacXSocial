@@ -41,8 +41,8 @@ export default function StoriesSection() {
 
   return (
     <>
-      <div className="bg-neutral-900 rounded-lg p-4 border border-neutral-800" data-testid="stories-section">
-        <div className="flex space-x-4 overflow-x-auto pb-2">
+      <div className="card p-6" data-testid="stories-section">
+        <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
           {/* Add/View own story */}
           <div className="flex-shrink-0 text-center">
             <div 
@@ -50,19 +50,19 @@ export default function StoriesSection() {
               onClick={handleAddStoryClick}
               data-testid="button-add-story"
             >
-              <div className="w-full h-full bg-black rounded-full flex items-center justify-center overflow-hidden">
+              <div className="w-full h-full bg-background rounded-full flex items-center justify-center overflow-hidden border-2 border-background">
                 {userStories && userStories.length > 0 ? (
                   <img 
-                    src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=e1306c&color=fff`}
+                    src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=4f46e5&color=fff`}
                     alt="Your story"
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <i className="fas fa-plus text-white"></i>
+                  <i className="fas fa-plus text-primary text-lg"></i>
                 )}
               </div>
             </div>
-            <p className="text-xs text-center mt-1 text-neutral-300">Your story</p>
+            <p className="text-xs text-center mt-2 text-muted-foreground font-medium">Your story</p>
           </div>
 
           {/* Stories */}
@@ -81,15 +81,15 @@ export default function StoriesSection() {
                   onClick={() => handleStoryClick(story)}
                   data-testid={`story-${story.id}`}
                 >
-                  <div className="w-full h-full rounded-full overflow-hidden border-2 border-black">
+                  <div className="w-full h-full rounded-full overflow-hidden border-2 border-background">
                     <img 
-                      src={story.user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(story.user?.username || 'User')}&background=000&color=fff`}
+                      src={story.user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(story.user?.username || 'User')}&background=4f46e5&color=fff`}
                       alt={story.user?.username}
                       className="w-full h-full object-cover"
                     />
                   </div>
                 </div>
-                <p className="text-xs text-center mt-1 text-neutral-300 truncate w-16">
+                <p className="text-xs text-center mt-2 text-muted-foreground font-medium truncate w-16">
                   {story.user?.username}
                 </p>
               </div>

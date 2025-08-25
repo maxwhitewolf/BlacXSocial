@@ -29,13 +29,13 @@ export default function Navigation({ onCreatePost }: NavigationProps) {
   if (!user) return null;
 
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-black border-b border-neutral-800 z-50" data-testid="navigation">
+    <nav className="fixed top-0 left-0 right-0 glass border-b z-50" data-testid="navigation">
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-4">
             <Link href="/">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent cursor-pointer" data-testid="logo">
+              <h1 className="text-2xl font-bold social-gradient bg-clip-text text-transparent cursor-pointer" data-testid="logo">
                 BlanX
               </h1>
             </Link>
@@ -49,10 +49,10 @@ export default function Navigation({ onCreatePost }: NavigationProps) {
                 placeholder="Search users, hashtags, posts..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-neutral-900 border-neutral-700 rounded-lg px-4 py-2 pl-10 text-sm focus:border-pink-500"
+                className="w-full pl-10 input"
                 data-testid="input-search"
               />
-              <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 text-sm"></i>
+              <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm"></i>
             </form>
           </div>
           
@@ -60,7 +60,7 @@ export default function Navigation({ onCreatePost }: NavigationProps) {
           <div className="flex items-center space-x-6">
             <Link href="/">
               <button 
-                className={`hover:text-pink-500 transition-colors ${location === '/' ? 'text-pink-500' : ''}`}
+                className={`btn-ghost ${location === '/' ? 'text-primary' : ''}`}
                 data-testid="nav-home"
               >
                 <i className="fas fa-home text-xl"></i>
@@ -69,7 +69,7 @@ export default function Navigation({ onCreatePost }: NavigationProps) {
             
             <Link href="/explore">
               <button 
-                className={`hover:text-pink-500 transition-colors ${location === '/explore' ? 'text-pink-500' : ''}`}
+                className={`btn-ghost ${location === '/explore' ? 'text-primary' : ''}`}
                 data-testid="nav-explore"
               >
                 <i className="fas fa-compass text-xl"></i>
@@ -78,26 +78,28 @@ export default function Navigation({ onCreatePost }: NavigationProps) {
             
             <Link href="/messages">
               <button 
-                className={`hover:text-pink-500 transition-colors ${location === '/messages' ? 'text-pink-500' : ''}`}
+                className={`btn-ghost ${location === '/messages' ? 'text-primary' : ''}`}
                 data-testid="nav-messages"
               >
                 <i className="fas fa-paper-plane text-xl"></i>
               </button>
             </Link>
             
-            <button 
-              className="hover:text-pink-500 transition-colors relative"
-              data-testid="nav-notifications"
-            >
-              <i className="fas fa-heart text-xl"></i>
-              <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                3
-              </span>
-            </button>
+            <Link href="/notifications">
+              <button 
+                className={`btn-ghost relative ${location === '/notifications' ? 'text-primary' : ''}`}
+                data-testid="nav-notifications"
+              >
+                <i className="fas fa-heart text-xl"></i>
+                <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
+                  3
+                </span>
+              </button>
+            </Link>
             
             {onCreatePost && (
               <button 
-                className="hover:text-pink-500 transition-colors"
+                className="btn-ghost"
                 onClick={onCreatePost}
                 data-testid="nav-create-post"
               >
@@ -107,15 +109,15 @@ export default function Navigation({ onCreatePost }: NavigationProps) {
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="w-8 h-8 rounded-full overflow-hidden border-2 border-pink-500 cursor-pointer" data-testid="nav-profile">
+                <button className="w-8 h-8 rounded-full overflow-hidden border-2 border-primary cursor-pointer hover:border-primary/80 transition-colors" data-testid="nav-profile">
                   <img 
-                    src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=e1306c&color=fff`}
+                    src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=4f46e5&color=fff`}
                     alt="Profile" 
                     className="w-full h-full object-cover"
                   />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-neutral-900 border-neutral-700">
+              <DropdownMenuContent align="end" className="glass">
                 <DropdownMenuItem asChild>
                   <Link href={`/profile/${user.username}`} className="cursor-pointer" data-testid="dropdown-profile">
                     <i className="fas fa-user mr-2"></i>
