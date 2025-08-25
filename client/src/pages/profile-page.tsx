@@ -16,13 +16,13 @@ export default function ProfilePage() {
   });
 
   const { data: posts, isLoading: postsLoading } = useQuery({
-    queryKey: ["/api/users", user?.id, "posts"],
-    enabled: !!user?.id,
+    queryKey: ["/api/users", (user as any)?.id, "posts"],
+    enabled: !!(user as any)?.id,
   });
 
   const { data: savedPosts } = useQuery({
     queryKey: ["/api/saved"],
-    enabled: user?.id === currentUser?.id,
+    enabled: (user as any)?.id === currentUser?.id,
   });
 
   if (userLoading) {
@@ -66,7 +66,7 @@ export default function ProfilePage() {
     );
   }
 
-  const isOwnProfile = currentUser?.id === user.id;
+  const isOwnProfile = currentUser?.id === (user as any)?.id;
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -78,7 +78,7 @@ export default function ProfilePage() {
           <div className="flex items-start space-x-8 mb-8">
             <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-pink-500">
               <img 
-                src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=e1306c&color=fff`}
+                src={(user as any)?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent((user as any)?.username || 'User')}&background=e1306c&color=fff`}
                 alt="Profile" 
                 className="w-full h-full object-cover"
                 data-testid="img-profile-avatar"
@@ -87,7 +87,7 @@ export default function ProfilePage() {
             
             <div className="flex-1">
               <div className="flex items-center space-x-4 mb-4">
-                <h1 className="text-2xl font-light" data-testid="text-username">{user.username}</h1>
+                <h1 className="text-2xl font-light" data-testid="text-username">{(user as any)?.username}</h1>
                 {isOwnProfile ? (
                   <Button 
                     variant="outline" 
@@ -112,36 +112,36 @@ export default function ProfilePage() {
               {/* Stats */}
               <div className="flex space-x-8 mb-4">
                 <div className="text-center">
-                  <span className="font-semibold" data-testid="text-posts-count">{user.postsCount || 0}</span>
+                  <span className="font-semibold" data-testid="text-posts-count">{(user as any)?.postsCount || 0}</span>
                   <span className="text-neutral-400 text-sm ml-1">posts</span>
                 </div>
                 <div className="text-center">
-                  <span className="font-semibold" data-testid="text-followers-count">{user.followersCount || 0}</span>
+                  <span className="font-semibold" data-testid="text-followers-count">{(user as any)?.followersCount || 0}</span>
                   <span className="text-neutral-400 text-sm ml-1">followers</span>
                 </div>
                 <div className="text-center">
-                  <span className="font-semibold" data-testid="text-following-count">{user.followingCount || 0}</span>
+                  <span className="font-semibold" data-testid="text-following-count">{(user as any)?.followingCount || 0}</span>
                   <span className="text-neutral-400 text-sm ml-1">following</span>
                 </div>
               </div>
               
               {/* Bio */}
               <div className="space-y-1">
-                {user.name && (
-                  <h2 className="font-semibold" data-testid="text-display-name">{user.name}</h2>
+                {(user as any)?.name && (
+                  <h2 className="font-semibold" data-testid="text-display-name">{(user as any)?.name}</h2>
                 )}
-                {user.bio && (
-                  <p className="text-neutral-300" data-testid="text-bio">{user.bio}</p>
+                {(user as any)?.bio && (
+                  <p className="text-neutral-300" data-testid="text-bio">{(user as any)?.bio}</p>
                 )}
-                {user.website && (
+                {(user as any)?.website && (
                   <a 
-                    href={user.website} 
+                    href={(user as any)?.website} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-pink-500 hover:text-pink-400 transition-colors"
                     data-testid="link-website"
                   >
-                    {user.website}
+                    {(user as any)?.website}
                   </a>
                 )}
               </div>

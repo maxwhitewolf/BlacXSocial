@@ -74,6 +74,13 @@ export interface IStorage {
   getUserNotifications(userId: string, limit?: number): Promise<(Notification & { actor: User })[]>;
   markNotificationAsRead(id: string): Promise<void>;
   markAllNotificationsAsRead(userId: string): Promise<void>;
+  
+  // Story operations
+  createStory(story: Omit<Story, 'id' | 'createdAt' | 'viewers'>): Promise<Story>;
+  getStory(id: string): Promise<(Story & { user: User }) | undefined>;
+  getUserStories(userId: string): Promise<(Story & { user: User })[]>;
+  getFollowingStories(userId: string): Promise<(Story & { user: User })[]>;
+  markStoryAsViewed(storyId: string, viewerId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -583,6 +590,74 @@ export class DatabaseStorage implements IStorage {
     await db.update(notifications)
       .set({ isRead: true })
       .where(eq(notifications.userId, userId));
+  }
+
+  async createStory(story: Omit<Story, 'id' | 'createdAt' | 'viewers'>): Promise<Story> {
+    const [newStory] = await db.insert(stories)
+      .values(story)
+      .returning();
+    return newStory;
+  }
+
+  async getStory(id: string): Promise<(Story & { user: User }) | undefined> {
+    const result = await db.select()
+      .from(stories)
+      .innerJoin(users, eq(stories.userId, users.id))
+      .where(and(
+        eq(stories.id, id),
+        gt(stories.expiresAt, new Date())
+      ));
+
+    if (result.length === 0) return undefined;
+
+    return {
+      ...result[0].stories,
+      user: result[0].users
+    };
+  }
+
+  async getUserStories(userId: string): Promise<(Story & { user: User })[]> {
+    const result = await db.select()
+      .from(stories)
+      .innerJoin(users, eq(stories.userId, users.id))
+      .where(and(
+        eq(stories.userId, userId),
+        gt(stories.expiresAt, new Date())
+      ))
+      .orderBy(desc(stories.createdAt));
+
+    return result.map(row => ({
+      ...row.stories,
+      user: row.users
+    }));
+  }
+
+  async getFollowingStories(userId: string): Promise<(Story & { user: User })[]> {
+    const result = await db.select()
+      .from(stories)
+      .innerJoin(users, eq(stories.userId, users.id))
+      .innerJoin(follows, eq(follows.followingId, stories.userId))
+      .where(and(
+        eq(follows.followerId, userId),
+        gt(stories.expiresAt, new Date())
+      ))
+      .orderBy(desc(stories.createdAt));
+
+    return result.map(row => ({
+      ...row.stories,
+      user: row.users
+    }));
+  }
+
+  async markStoryAsViewed(storyId: string, viewerId: string): Promise<void> {
+    await db.update(stories)
+      .set({ 
+        viewers: sql`array_append(COALESCE(${stories.viewers}, ARRAY[]::text[]), ${viewerId})`
+      })
+      .where(and(
+        eq(stories.id, storyId),
+        sql`NOT ${viewerId} = ANY(COALESCE(${stories.viewers}, ARRAY[]::text[]))`
+      ));
   }
 }
 

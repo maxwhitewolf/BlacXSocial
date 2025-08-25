@@ -201,7 +201,8 @@ export function registerRoutes(app: Express): Server {
       });
       const comment = await storage.createComment({
         ...validatedData,
-        authorId: req.user!.id
+        authorId: req.user!.id,
+        postId: validatedData.postId
       });
       res.status(201).json(comment);
     } catch (error) {
@@ -380,6 +381,91 @@ export function registerRoutes(app: Express): Server {
       res.sendStatus(204);
     } catch (error) {
       res.status(500).json({ message: "Failed to mark all notifications as read" });
+    }
+  });
+
+  // Story routes
+  app.post("/api/stories", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const { media } = req.body;
+      if (!media || !media.url) {
+        return res.status(400).json({ message: "Media is required" });
+      }
+
+      const story = await storage.createStory({
+        userId: req.user!.id,
+        media,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
+      });
+      
+      res.status(201).json(story);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create story" });
+    }
+  });
+
+  app.get("/api/stories/following", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const stories = await storage.getFollowingStories(req.user!.id);
+      res.json(stories);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch stories" });
+    }
+  });
+
+  app.get("/api/stories/user/:userId", async (req, res) => {
+    try {
+      const stories = await storage.getUserStories(req.params.userId);
+      res.json(stories);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch user stories" });
+    }
+  });
+
+  app.get("/api/stories/:id", async (req, res) => {
+    try {
+      const story = await storage.getStory(req.params.id);
+      if (!story) {
+        return res.status(404).json({ message: "Story not found" });
+      }
+      res.json(story);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch story" });
+    }
+  });
+
+  app.post("/api/stories/:id/view", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      await storage.markStoryAsViewed(req.params.id, req.user!.id);
+      res.sendStatus(200);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to mark story as viewed" });
+    }
+  });
+
+  // Update user profile
+  app.patch("/api/users/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    // Only allow users to update their own profile
+    if (req.user!.id !== req.params.id) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+    
+    try {
+      const updatedUser = await storage.updateUser(req.params.id, req.body);
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json(updatedUser);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update profile" });
     }
   });
 

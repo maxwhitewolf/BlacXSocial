@@ -9,6 +9,10 @@ import AuthPage from "@/pages/auth-page";
 import ProfilePage from "@/pages/profile-page";
 import ExplorePage from "@/pages/explore-page";
 import MessagesPage from "@/pages/messages-page";
+import SearchPage from "@/pages/search-page";
+import NotificationsPage from "@/pages/notifications-page";
+import PostViewPage from "@/pages/post-view-page";
+import ProfileEditPage from "@/pages/profile-edit-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { AuthProvider } from "./hooks/use-auth";
 
@@ -18,6 +22,10 @@ function Router() {
       <ProtectedRoute path="/" component={HomePage} />
       <ProtectedRoute path="/explore" component={ExplorePage} />
       <ProtectedRoute path="/messages" component={MessagesPage} />
+      <ProtectedRoute path="/search" component={SearchPage} />
+      <ProtectedRoute path="/notifications" component={NotificationsPage} />
+      <ProtectedRoute path="/post/:id" component={PostViewPage} />
+      <ProtectedRoute path="/profile/:username/edit" component={ProfileEditPage} />
       <ProtectedRoute path="/profile/:username" component={ProfilePage} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />

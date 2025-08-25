@@ -1,113 +1,119 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { Skeleton } from "@/components/ui/skeleton";
+import StoryViewer from "./story-viewer";
+import AddStoryModal from "./add-story-modal";
 
 export default function StoriesSection() {
   const { user } = useAuth();
+  const [selectedStory, setSelectedStory] = useState<any>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [showAddStory, setShowAddStory] = useState(false);
 
-  // In a real app, this would fetch actual stories data
   const { data: stories, isLoading } = useQuery({
-    queryKey: ["/api/stories"],
+    queryKey: ["/api/stories/following"],
     enabled: !!user,
-    // For now, return empty array since we don't have stories implementation
-    queryFn: () => Promise.resolve([]),
   });
 
-  if (isLoading) {
-    return (
-      <div className="bg-neutral-900 rounded-lg p-4 border border-neutral-800">
-        <div className="flex space-x-4 overflow-x-auto pb-2">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex-shrink-0 text-center">
-              <Skeleton className="w-16 h-16 rounded-full mb-2" />
-              <Skeleton className="h-3 w-12 mx-auto" />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const { data: userStories } = useQuery({
+    queryKey: ["/api/stories/user", user?.id],
+    enabled: !!user?.id,
+  });
 
-  // Mock stories data for UI demonstration
-  const mockStories = [
-    {
-      id: "1",
-      user: {
-        id: "1",
-        username: "sarah_k",
-        avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&h=100"
-      },
-      hasViewed: false
-    },
-    {
-      id: "2", 
-      user: {
-        id: "2",
-        username: "alex_m",
-        avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&h=100"
-      },
-      hasViewed: false
-    },
-    {
-      id: "3",
-      user: {
-        id: "3", 
-        username: "tom_w",
-        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&h=100"
-      },
-      hasViewed: true
+  const handleStoryClick = (story: any) => {
+    setSelectedStory(story);
+    setSelectedUserId(story.userId);
+  };
+
+  const handleAddStoryClick = () => {
+    if (userStories && userStories.length > 0) {
+      // User has stories, view them
+      setSelectedUserId(user?.id || null);
+      setSelectedStory(userStories[0]);
+    } else {
+      // User has no stories, show add story modal
+      setShowAddStory(true);
     }
-  ];
+  };
+
+  if (!user) return null;
 
   return (
-    <div className="bg-neutral-900 rounded-lg p-4 border border-neutral-800" data-testid="stories-section">
-      <div className="flex space-x-4 overflow-x-auto pb-2">
-        {/* Your Story */}
-        <div className="flex-shrink-0 text-center" data-testid="your-story">
-          <div className="w-16 h-16 rounded-full bg-neutral-800 border-2 border-dashed border-neutral-600 p-0.5 cursor-pointer hover:border-pink-500 transition-colors">
-            <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
-              {user?.avatar ? (
-                <img 
-                  src={user.avatar}
-                  alt="Your story" 
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <i className="fas fa-plus text-neutral-400 text-xl"></i>
-              )}
-            </div>
-          </div>
-          <p className="text-xs mt-1 text-neutral-300">Your story</p>
-        </div>
-
-        {/* Other Stories */}
-        {mockStories.map((story) => (
-          <div 
-            key={story.id} 
-            className="flex-shrink-0 text-center cursor-pointer"
-            data-testid={`story-${story.id}`}
-          >
-            <div className={`w-16 h-16 rounded-full p-0.5 ${
-              story.hasViewed 
-                ? 'bg-neutral-600' 
-                : 'bg-gradient-to-r from-pink-500 to-purple-500'
-            }`}>
-              <div className="w-full h-full rounded-full overflow-hidden border-2 border-black">
-                <img 
-                  src={story.user.avatar}
-                  alt="Story" 
-                  className="w-full h-full object-cover"
-                />
+    <>
+      <div className="bg-neutral-900 rounded-lg p-4 border border-neutral-800" data-testid="stories-section">
+        <div className="flex space-x-4 overflow-x-auto pb-2">
+          {/* Add/View own story */}
+          <div className="flex-shrink-0 text-center">
+            <div 
+              className="w-16 h-16 rounded-full bg-gradient-to-tr from-pink-500 to-purple-500 p-0.5 cursor-pointer"
+              onClick={handleAddStoryClick}
+              data-testid="button-add-story"
+            >
+              <div className="w-full h-full bg-black rounded-full flex items-center justify-center overflow-hidden">
+                {userStories && userStories.length > 0 ? (
+                  <img 
+                    src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=e1306c&color=fff`}
+                    alt="Your story"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <i className="fas fa-plus text-white"></i>
+                )}
               </div>
             </div>
-            <p className={`text-xs mt-1 ${
-              story.hasViewed ? 'text-neutral-500' : 'text-neutral-300'
-            }`}>
-              {story.user.username}
-            </p>
+            <p className="text-xs text-center mt-1 text-neutral-300">Your story</p>
           </div>
-        ))}
+
+          {/* Stories */}
+          {isLoading ? (
+            Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="flex-shrink-0 text-center">
+                <Skeleton className="w-16 h-16 rounded-full mb-2" />
+                <Skeleton className="h-3 w-12 mx-auto" />
+              </div>
+            ))
+          ) : Array.isArray(stories) ? (
+            stories.map((story: any) => (
+              <div key={story.id} className="flex-shrink-0 text-center">
+                <div 
+                  className="w-16 h-16 rounded-full bg-gradient-to-tr from-pink-500 to-purple-500 p-0.5 cursor-pointer"
+                  onClick={() => handleStoryClick(story)}
+                  data-testid={`story-${story.id}`}
+                >
+                  <div className="w-full h-full rounded-full overflow-hidden border-2 border-black">
+                    <img 
+                      src={story.user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(story.user?.username || 'User')}&background=000&color=fff`}
+                      alt={story.user?.username}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-center mt-1 text-neutral-300 truncate w-16">
+                  {story.user?.username}
+                </p>
+              </div>
+            ))
+          ) : null}
+        </div>
       </div>
-    </div>
+
+      {/* Story Viewer */}
+      <StoryViewer 
+        isOpen={!!selectedStory}
+        onClose={() => {
+          setSelectedStory(null);
+          setSelectedUserId(null);
+        }}
+        storyId={selectedStory?.id}
+        userId={selectedUserId}
+      />
+
+      {/* Add Story Modal */}
+      <AddStoryModal 
+        isOpen={showAddStory}
+        onClose={() => setShowAddStory(false)}
+      />
+    </>
   );
 }
